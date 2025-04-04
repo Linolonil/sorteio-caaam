@@ -72,12 +72,7 @@ export default function LotterySystem() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center relative overflow-hidden "
-      style={{
-        backgroundImage: "url('/placeholder.svg?height=1080&width=1920')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+      className="lottery-container min-h-screen flex flex-col items-center relative overflow-hidden "
     >
       <ThemeToggle/>
       {showConfetti && <Confetti />}
@@ -88,7 +83,12 @@ export default function LotterySystem() {
         transition={{ duration: 0.5 }}
         className="mt-8 mb-6 md:mb-10 w-full max-w-md px-4"
       >
-        <div className=" backdrop-blur-sm p-4 rounded-xl shadow-lg flex justify-center">
+      <div className={`
+        p-4 rounded-xl shadow-lg flex justify-center
+        bg-white/90 dark:bg-black/90 
+        border border-gray-200 dark:border-gray-700  
+        backdrop-blur-sm
+      `}>          
           <Image
             src="/logo.png"
             alt="OAB CAAAM Amazonas"

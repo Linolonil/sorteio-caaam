@@ -12,11 +12,27 @@
 }
 
 .lottery-container {
-  background-image: url('/background.jpg');
+  background-image: url('/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  
+  /* Efeito de blur no background */
+  backdrop-filter: blur(8px); /* Ajuste o valor (px) para intensidade */
+  
+  /* Garante que o conteúdo interno não fique desfocado */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    filter: blur(8px);
+    z-index: -1; /* Coloca atrás do conteúdo */
+  }
 }
 
 @theme inline {
