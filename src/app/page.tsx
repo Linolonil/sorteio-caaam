@@ -16,12 +16,26 @@ export default function LotterySystem() {
   const [numberOfPrizes, setNumberOfPrizes] = useState<number>(10)
   const [numberOfParticipants, setNumberOfParticipants] = useState<number>(100)
   const [isConfigured, setIsConfigured] = useState<boolean>(false)
+  const [showAddPrizeInput, setShowAddPrizeInput] = useState<boolean>(false)
+  const [additionalPrizes, setAdditionalPrizes] = useState<number>(0)
+  const [excludedNumbers, setExcludedNumbers] = useState<string>("")
 
   // Drawing state
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([])
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [showConfetti, setShowConfetti] = useState<boolean>(false)
   const [currentPrize, setCurrentPrize] = useState<number>(1)
+  const [redrawingIndex, setRedrawingIndex] = useState<number | null>(null)
+
+  const parseExcludedNumbers = (): number[] => {
+    if (!excludedNumbers.trim()) return []
+    return excludedNumbers
+      .split(",")
+      .map(n => n.trim())
+      .filter(n => n !== "")
+      .map(n => parseInt(n))
+      .filter(n => !isNaN(n) && n > 0 && n <= numberOfParticipants)
+  }
 
   const startDraw = () => {
     if (numberOfPrizes <= 0 || numberOfParticipants <= 0) {
@@ -44,9 +58,10 @@ export default function LotterySystem() {
 
     // Generate a unique random number that hasn't been drawn yet
     let randomNumber: number
+    const excluded = parseExcludedNumbers()
     do {
       randomNumber = Math.floor(Math.random() * numberOfParticipants) + 1
-    } while (drawnNumbers.includes(randomNumber))
+    } while (drawnNumbers.includes(randomNumber) || excluded.includes(randomNumber))
 
     // Simulate drawing suspense with a timeout
     setTimeout(() => {
@@ -63,11 +78,50 @@ export default function LotterySystem() {
     }, 1500)
   }
 
+  const redrawNumber = (index: number) => {
+    if (isDrawing) return
+    
+    setRedrawingIndex(index)
+
+    // Generate a unique random number that hasn't been drawn yet
+    let randomNumber: number
+    const excluded = parseExcludedNumbers()
+    do {
+      randomNumber = Math.floor(Math.random() * numberOfParticipants) + 1
+    } while (drawnNumbers.includes(randomNumber) || excluded.includes(randomNumber))
+
+    // Simulate drawing suspense with a timeout
+    setTimeout(() => {
+      setDrawnNumbers((prev) => {
+        const newNumbers = [...prev]
+        newNumbers[index] = randomNumber
+        return newNumbers
+      })
+      setRedrawingIndex(null)
+    }, 1500)
+  }
+
   const resetDraw = () => {
     setDrawnNumbers([])
     setCurrentPrize(1)
     setShowConfetti(false)
     setIsConfigured(false)
+  }
+
+  const addMorePrizes = () => {
+    if (additionalPrizes <= 0) {
+      alert("Por favor, insira um número válido de prêmios adicionais.")
+      return
+    }
+
+    if (numberOfPrizes + additionalPrizes > numberOfParticipants) {
+      alert("O número total de prêmios não pode ser maior que o número de participantes.")
+      return
+    }
+
+    setNumberOfPrizes(prev => prev + additionalPrizes)
+    setAdditionalPrizes(0)
+    setShowAddPrizeInput(false)
   }
 
   return (
@@ -145,6 +199,23 @@ export default function LotterySystem() {
                     className="text-lg h-12"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="excludedNumbers" className="text-base">
+                    Números que não devem ser sorteados (separados por vírgula)
+                  </Label>
+                  <Input
+                    id="excludedNumbers"
+                    type="text"
+                    placeholder="Ex: 5, 10, 15"
+                    value={excludedNumbers}
+                    onChange={(e) => setExcludedNumbers(e.target.value)}
+                    className="text-lg h-12"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Digite os números separados por vírgula. Exemplo: 5, 10, 15
+                  </p>
+                </div>
               </CardContent>
 
               <CardFooter className="pt-2">
@@ -181,13 +252,52 @@ export default function LotterySystem() {
                     Prêmio <span className="font-bold">{Math.min(currentPrize, numberOfPrizes)}</span> de{" "}
                     <span className="font-bold">{numberOfPrizes}</span>
                   </CardDescription>
+                  {!showAddPrizeInput ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAddPrizeInput(true)}
+                      className="mt-2 mx-auto bg-white/10 hover:bg-white/20 text-white border-white/20"
+                    >
+                      Adicionar Mais Prêmios
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-2 justify-center">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={additionalPrizes}
+                        onChange={(e) => setAdditionalPrizes(Number.parseInt(e.target.value) || 0)}
+                        className="w-24 h-8 text-black"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={addMorePrizes}
+                        className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                      >
+                        Confirmar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowAddPrizeInput(false)
+                          setAdditionalPrizes(0)
+                        }}
+                        className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
                 </CardHeader>
 
                 <CardContent className="p-8">
                   {/* Current number display */}
                   <div className="flex justify-center my-8">
                     <AnimatePresence mode="wait">
-                      {isDrawing ? (
+                      {isDrawing && redrawingIndex === null ? (
                         <motion.div
                           key="drawing"
                           initial={{ scale: 0.8, opacity: 0 }}
@@ -288,22 +398,58 @@ export default function LotterySystem() {
 
                 <CardContent className="p-4 max-h-[500px] overflow-auto">
                   <div className="space-y-3">
-                    {drawnNumbers.slice(0, -1).map((number, index) => (
+                    {drawnNumbers.map((number, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 * index }}
-                        className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100"
+                        className="flex items-center justify-between gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100"
                       >
-                        <div className="w-10 h-10 rounded-full bg-[#2A6F97] flex items-center justify-center font-bold text-white text-lg">
-                          {index + 1}
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#2A6F97] flex items-center justify-center font-bold text-white text-lg">
+                            {index + 1}
+                          </div>
+                          <div className="text-2xl font-semibold text-[#014F86]">
+                            {redrawingIndex === index ? (
+                              <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{
+                                  scale: [0.8, 1.1, 1],
+                                  opacity: 1,
+                                  rotate: [0, 5, -5, 5, -5, 0],
+                                }}
+                                transition={{
+                                  duration: 0.5,
+                                  repeat: 3,
+                                  repeatType: "reverse",
+                                }}
+                                className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold text-2xl"
+                              >
+                                ?
+                              </motion.div>
+                            ) : (
+                              number
+                            )}
+                          </div>
                         </div>
-                        <div className="text-2xl font-semibold text-[#014F86]">{number}</div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => redrawNumber(index)}
+                          disabled={isDrawing}
+                          className="h-8 px-3"
+                        >
+                          {redrawingIndex === index ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#2A6F97]" />
+                          ) : (
+                            <RotateCcw className="h-4 w-4" />
+                          )}
+                        </Button>
                       </motion.div>
                     ))}
 
-                    {drawnNumbers.length <= 1 && (
+                    {drawnNumbers.length === 0 && (
                       <div className="text-center py-8 text-gray-500 italic">Os números sorteados aparecerão aqui</div>
                     )}
                   </div>
