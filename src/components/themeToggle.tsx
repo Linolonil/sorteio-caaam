@@ -11,7 +11,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-5"
+      className="absolute top-0 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-5"
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -22,7 +22,7 @@ export function ThemeToggle() {
           transition={{ duration: 0.2 }}
         >
           
-          {theme === "dark" ? <Sun className={`dark:text-black/90`}/> : <Moon />}
+          {theme === "dark" ? <Sun className={`dark:text-white/90`}/> : <Moon className={`text-white/90`} />}
         </motion.div>
       </AnimatePresence>
     </button>

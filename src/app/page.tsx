@@ -75,7 +75,7 @@ export default function LotterySystem() {
       }
 
       setCurrentPrize((prev) => prev + 1)
-    }, 1500)
+    }, 500)
   }
 
   const redrawNumber = (index: number) => {
@@ -98,7 +98,7 @@ export default function LotterySystem() {
         return newNumbers
       })
       setRedrawingIndex(null)
-    }, 1500)
+    }, 500)
   }
 
   const resetDraw = () => {
@@ -309,7 +309,6 @@ export default function LotterySystem() {
                           exit={{ scale: 0.8, opacity: 0 }}
                           transition={{
                             duration: 0.5,
-                            repeat: 3,
                             repeatType: "reverse",
                           }}
                           className="w-48 h-48 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold text-6xl shadow-lg"
