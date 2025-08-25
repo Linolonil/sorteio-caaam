@@ -7,6 +7,7 @@ import { useState, useMemo, useCallback } from "react"
 export interface LotteryConfig {
   numberOfPrizes: number
   numberOfParticipants: number
+  
   excludedNumbersRaw: string
 }
 

@@ -17,12 +17,29 @@ interface ConfigurationScreenProps {
 
 export function ConfigurationScreen({ config, setConfig, onStart }: ConfigurationScreenProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
+    const { id, value } = e.target;
+
+    // Se o campo for de texto (números excluídos), apenas atualize o valor.
+    if (id === "excludedNumbersRaw") {
+      setConfig({ ...config, [id]: value });
+      return;
+    }
+
+    // Para campos numéricos:
+    // Se o valor for uma string vazia, mantenha-o como string vazia para permitir que o usuário digite.
+    // Caso contrário, converta para número.
+    const numericValue = value === "" ? "" : parseInt(value, 10);
+
+    // Evita que o valor seja NaN se a conversão falhar (ex: usuário digita "abc")
+    if (isNaN(numericValue as number)) {
+        return;
+    }
+
     setConfig({
       ...config,
-      [id]: id === "excludedNumbersRaw" ? value : parseInt(value, 10) || 1,
-    })
-  }
+      [id]: numericValue,
+    });
+  };
 
   return (
     <motion.div
